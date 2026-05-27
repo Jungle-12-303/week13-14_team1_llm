@@ -10,10 +10,11 @@ UTF-8 byte-level BPE 토크나이저 과제 템플릿.
 from pathlib import Path
 
 
-PAD_TOKEN = "<pad>"
-UNK_TOKEN = "<unk>"
-BOS_TOKEN = "<bos>"
-EOS_TOKEN = "<eos>"
+# 앞에 b 붙이면 bytes 객체로 확정
+PAD_TOKEN = b"<pad>" # 패딩
+UNK_TOKEN = b"<unk>" # 모르는 단어
+BOS_TOKEN = b"<bos>" # 문장 시작
+EOS_TOKEN = b"<eos>" # 문장 끝
 
 SPECIAL_TOKENS = [PAD_TOKEN, UNK_TOKEN, BOS_TOKEN, EOS_TOKEN]
 SPECIAL_IDS = {token: idx for idx, token in enumerate(SPECIAL_TOKENS)}
@@ -33,8 +34,8 @@ class BPETokenizer:
 
     def __init__(self, vocab_size: int = 3000):
         self.vocab_size = vocab_size
-        self.id_to_token = {}
-        self.token_to_id = {}
+        self.id_to_token = {} # 디코딩에서 사용
+        self.token_to_id = {} # 인코딩에서 사용
         self.merges = []
 
     def _init_special_tokens(self):
@@ -43,7 +44,22 @@ class BPETokenizer:
         1. 특수 토큰 4개를 고정 ID 0~3에 등록합니다.
         2. byte 0~255를 ID 4~259에 bytes([byte_value]) 형태로 등록합니다.
         """
-        raise NotImplementedError("_init_special_tokens를 구현하세요.")
+
+        # id_to_token, token_to_id 등록
+        # 고정 ID 0~3 등록
+        for token_id, token in enumerate(SPECIAL_TOKENS):
+            self.id_to_token[token_id] = token
+            self.token_to_id[token] = token_id
+
+        # ID 4~259 <-> byte 0~255 등록
+        for i in range(NUM_BYTES):
+            token = bytes([i])
+            token_id = i + BYTE_OFFSET
+
+            self.id_to_token[token_id] = token
+            self.token_to_id[token] = token_id
+            
+        return
 
     def get_pad_id(self):
         """padding 토큰 ID."""
