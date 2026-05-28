@@ -49,7 +49,6 @@ class InputEmbedding(nn.Module):
         x_position = self.position_embedding(positions)
 
         x_embedding = x_token + x_position
-        
+
         return self.dropout_layer(x_embedding)
-    
         #raise NotImplementedError("InputEmbedding.forward를 구현하세요.")
