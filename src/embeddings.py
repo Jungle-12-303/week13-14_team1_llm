@@ -27,7 +27,11 @@ class InputEmbedding(nn.Module):
         self.emb_dim = emb_dim
         self.context_length = context_length
         # TODO: token_embedding, position_embedding, dropout을 정의하세요.
-        raise NotImplementedError("InputEmbedding.__init__을 구현하세요.")
+
+        self.token_embedding = torch.nn.Embedding(vocab_size, self.emb_dim)
+        self.position_embedding = torch.nn.Embedding(self.context_length, self.emb_dim)
+        self.drop_rate = drop_rate
+        self.dropout = torch.nn.Dropout(drop_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -39,4 +43,14 @@ class InputEmbedding(nn.Module):
         Returns:
             (batch_size, seq_len, emb_dim)
         """
-        raise NotImplementedError("InputEmbedding.forward를 구현하세요.")
+        token_embedding = self.token_embedding(x) # torch.nn.Module 안에 __call__ 메서드 있음
+        pos = torch.tensor(
+            [idx for idx in range(x.shape[1])], # 0은 배치
+            dtype=torch.long,
+            device=x.device # 이 내용 없으면 나중에 gpu에서 작업할 때 pos를 못찾음
+            )
+        position_embedding = self.position_embedding(pos)
+
+        emb_tensor = token_embedding + position_embedding
+        out = self.dropout(emb_tensor)
+        return out
