@@ -46,6 +46,7 @@ class BPETokenizer:
         2. byte 0~255를 ID 4~259에 bytes([byte_value]) 형태로 등록합니다.
         """
 
+        # train을 여러번 호출 할 경우 오류 방어(id,token 중복 추가 방지)
         self.id_to_token = {}
         self.token_to_id = {}
 
@@ -229,7 +230,6 @@ class BPETokenizer:
         """
         tokens = self._text_to_byte_tokens(text)
 
-        # merge 작업 추가해야 됨
         for pair in self.merges:
             tokens = self._merge_pair(tokens, pair)
 
