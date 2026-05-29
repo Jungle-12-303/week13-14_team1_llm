@@ -3,7 +3,7 @@
 
 import torch
 import torch.nn as nn
-
+import math
 
 class MultiHeadAttention(nn.Module):
     """
@@ -32,7 +32,9 @@ class MultiHeadAttention(nn.Module):
         self.head_dim = d_model // n_heads
         # TODO: qkv projection, output projection, dropout을 정의하세요.
         
-        self.qkv_projection = nn.Linear(d_model, d_model * 3, bias=qkv_bias)
+        self.query = nn.Linear(d_model, d_model, bias=qkv_bias)
+        self.key = nn.Linear(d_model, d_model, bias=qkv_bias)
+        self.value = nn.Linear(d_model, d_model, bias=qkv_bias)
         self.output_projection = nn.Linear(d_model, d_model, bias=qkv_bias)
         self.dropout = nn.Dropout(drop_rate)
 
@@ -52,6 +54,37 @@ class MultiHeadAttention(nn.Module):
             causal_mask: True이면 미래 위치를 볼 수 없게 mask 처리
             return_attention_weights: True이면 attention weight도 함께 반환
         """
+        b,t,c = x.size()
+        smoothing = math.sqrt(self.head_dim)
 
+        q = self.query(x)
+        k = self.key(x)
+        v = self.value(x)
 
+        q = q.view(b, t, self.n_heads, self.head_dim).transpose(1,2)
+        k = k.view(b, t, self.n_heads, self.head_dim).transpose(1,2)
+        v = v.view(b, t, self.n_heads, self.head_dim).transpose(1,2)
+
+        score = torch.matmul(q, k.transpose(-1,-2))
+        score = score / smoothing
+
+        if causal_mask:
+            mask = torch.tril(torch.ones(t,t, device=x.device))
+            mask = mask.view(1,1,t,t)
+            score = score.masked_fill(mask == 0, float('-inf'))
+
+        attention_weight = torch.softmax(score, dim=-1)
+        attention_weight = self.dropout(attention_weight)
+        
+        weights = torch.matmul(attention_weight, v)
+        weights = weights.transpose(1,2).contiguous().view(b,t,c)
+        weights = self.output_projection(weights)
+
+        if return_attention_weights:
+            return weights, attention_weight
+        
+        return weights
+    
         #raise NotImplementedError("MultiHeadAttention.forward를 구현하세요.")
+
+    
