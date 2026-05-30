@@ -31,7 +31,12 @@ class MultiHeadAttention(nn.Module):
         self.n_heads = n_heads
         self.head_dim = d_model // n_heads
         # TODO: qkv projection, output projection, dropout을 정의하세요.
-        raise NotImplementedError("MultiHeadAttention.__init__을 구현하세요.")
+        self.q = nn.Linear(d_model, d_model, bias=qkv_bias)
+        self.k = nn.Linear(d_model, d_model, bias=qkv_bias)
+        self.v = nn.Linear(d_model, d_model, bias=qkv_bias)
+
+        self.dropout = torch.nn.Dropout(drop_rate)
+        self.output = nn.Linear(d_model, d_model)
 
     def forward(
         self,
@@ -39,7 +44,7 @@ class MultiHeadAttention(nn.Module):
         causal_mask: bool = True,
         return_attention_weights: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
-        """
+        """ 
         TODO: multi-head attention forward를 구현합니다.
 
         Args:
@@ -47,4 +52,49 @@ class MultiHeadAttention(nn.Module):
             causal_mask: True이면 미래 위치를 볼 수 없게 mask 처리
             return_attention_weights: True이면 attention weight도 함께 반환
         """
-        raise NotImplementedError("MultiHeadAttention.forward를 구현하세요.")
+
+        """
+        x
+        → Q/K/V
+        → head 분리
+        → QK^T / sqrt(head_dim)
+        → causal mask
+        → softmax
+        → dropout
+        → attention_weights @ V
+        → head 합치기
+        → output projection
+        → 반환
+        """
+
+        q = self.q(x)
+        k = self.k(x)
+        v = self.v(x)
+        batch_size, seq_len, d_model = x.shape
+        # (B, T, H, D) -> (B, H, T, D)로 차원 순서 변경
+        q = q.reshape(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
+        k = k.reshape(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
+        v = v.reshape(batch_size, seq_len, self.n_heads, self.head_dim).transpose(1, 2)
+
+        scores = torch.matmul(q, k.transpose(-2, -1)) / (self.head_dim ** 0.5)
+        
+        # causal mask
+        if causal_mask:
+            mask = torch.ones(seq_len, seq_len, device=x.device)
+            mask = torch.triu(mask, diagonal=1)
+            scores = scores.masked_fill(mask.bool(), float("-inf"))
+
+        weights = torch.softmax(scores, dim=-1)
+        weights = self.dropout(weights)
+
+        context = torch.matmul(weights, v)
+
+        # 차원 원상 복구
+        context = context.transpose(1, 2)
+        context = context.contiguous().reshape(batch_size, seq_len, self.d_model)
+
+        # 반환 값
+        out = self.output(context)
+        if return_attention_weights:
+            return (out, weights)
+        return out
