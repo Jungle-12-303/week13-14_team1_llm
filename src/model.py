@@ -115,7 +115,7 @@ class GPTModel(nn.Module):
         n_layers = config["n_layers"]
         n_heads = config["n_heads"]
         qkv_bias = config["qkv_bias"]
-        # TODO: embedding, blocks, final layernorm, lm_head를 정의하세요.
+
         self.tok_emb = nn.Embedding(v_size, e_dim)
         self.pos_emb = nn.Embedding(context_len, e_dim)
         self.drop_emb = nn.Dropout(drop_rate)
@@ -185,7 +185,7 @@ def generate_text_simple(
     max_new_tokens: int,
     context_size: int,
 ) -> torch.Tensor:
-    """TODO: greedy 방식으로 max_new_tokens만큼 다음 토큰을 이어 붙입니다."""
+    """"""
     
     for _ in range(max_new_tokens):
         idx_cnt = idx[:, -context_size:]
