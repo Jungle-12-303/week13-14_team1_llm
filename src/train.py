@@ -158,7 +158,46 @@ def train_model(
     global_step: int = 0,
 ) -> list[float]:
     """TODO: 사전 학습 루프를 구현하고 epoch별 train loss 리스트를 반환합니다."""
-    
+    model.train()
+
+    train_loss = []
+
+    for epoch in range(start_epoch, start_epoch + num_epochs):
+        epoch_loss = 0.0
+
+        for input_batch, target_batch in train_loader:
+            loss = calc_loss_batch(input_batch=input_batch, target_batch=target_batch, model=model, device=device)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            epoch_loss += loss.item()
+            global_step += 1
+
+            if global_step % eval_freq == 0:
+                model.eval()
+
+                train_loss_val = calc_loss_loader(data_loader=train_loader, model=model, device=device,num_batches=eval_iter)
+                value_loss_val = calc_loss_loader(data_loader=val_loader, model=model, device=device,num_batches=eval_iter)
+
+                print(f"train loss: {train_loss_val} / value_loss_val: {value_loss_val}")
+
+                generate_and_print_sample(model=model, tokenizer=tokenizer, device=device, start_context=start_context)
+
+                model.train()
+
+            if ckpt_freq is not None and global_step % ckpt_freq == 0:
+                path = f"model_ckpt_{global_step}.pth"
+                
+                save_checkpoint(model=model,
+                                optimizer=optimizer,
+                                epoch=epoch,
+                                global_step=global_step,
+                                path=path)
+                
+        train_loss.append(epoch_loss / len(train_loader))
+            
+    return train_loss
     #raise NotImplementedError("train_model을 구현하세요.")
 
 
