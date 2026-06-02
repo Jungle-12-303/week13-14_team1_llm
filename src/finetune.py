@@ -3,6 +3,8 @@
 
 from pathlib import Path
 
+import json
+import random
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
@@ -26,7 +28,32 @@ def make_sentiment_dataset(
     반환 형식:
         [{"text": "리뷰", "label": 0 또는 1}, ...]
     """
-    raise NotImplementedError("make_sentiment_dataset을 구현하세요.")
+    random.seed(seed)
+
+    def read_jsonl(path):
+        data = []
+        with open(path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+
+                if "text" in item and "label" in item and item["text"].strip():
+                    data.append({"text" : item["text"], "label" : int(item["label"])})
+        return data
+
+    train_all = read_jsonl(train_tsv_path)
+    random.shuffle(train_all)
+
+    val_size = int(len(train_all) * val_ratio)
+    train_data = train_all[:val_size]
+    val_data = train_all[val_size:]
+
+    test_data = read_jsonl(test_tsv_path) if test_tsv_path else []
+
+    return train_data, val_data, test_data
+
+    #raise NotImplementedError("make_sentiment_dataset을 구현하세요.")
 
 
 class ReviewSentimentDataset(Dataset):
@@ -49,7 +76,22 @@ class ReviewSentimentDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         """TODO: text를 encode하고 max_length까지 자르거나 padding한 뒤 label과 함께 반환합니다."""
-        raise NotImplementedError("ReviewSentimentDataset.__getitem__을 구현하세요.")
+        item = self.data[idx]
+        text = item["text"]
+        label = item["label"]
+
+        encoded_text = self.tokenizer(text)
+        if len(encoded_text) > self.max_length:
+            encoded_text = encoded_text[:self.max_length]
+        else:
+            padding = self.max_length - len(encoded_text)
+            encoded_text.extend([self.pad_id] * padding)
+
+        input_ids = torch.tensor(encoded_text, dtype=torch.long)
+
+        return input_ids, label
+
+        #raise NotImplementedError("ReviewSentimentDataset.__getitem__을 구현하세요.")
 
 
 class GPTForSequenceClassification(nn.Module):
@@ -69,7 +111,8 @@ class GPTForSequenceClassification(nn.Module):
         self.gpt = gpt_model
         self.num_labels = num_labels
         # TODO: dropout과 classifier를 정의하세요. classifier 입력 차원은 gpt_model.config["emb_dim"]입니다.
-        raise NotImplementedError("GPTForSequenceClassification.__init__을 구현하세요.")
+
+        #raise NotImplementedError("GPTForSequenceClassification.__init__을 구현하세요.")
 
     def forward(
         self,
@@ -81,7 +124,8 @@ class GPTForSequenceClassification(nn.Module):
 
         labels가 있으면 (loss, logits), 없으면 logits를 반환합니다.
         """
-        raise NotImplementedError("GPTForSequenceClassification.forward를 구현하세요.")
+        
+        #raise NotImplementedError("GPTForSequenceClassification.forward를 구현하세요.")
 
 
 def train_epoch_sentiment(
