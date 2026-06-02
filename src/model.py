@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+import math
 
 try:
     from .attention import MultiHeadAttention
@@ -23,7 +24,17 @@ class LayerNorm(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: 마지막 차원의 평균과 분산으로 정규화한 뒤 gamma/beta를 적용합니다."""
-        raise NotImplementedError("LayerNorm.forward를 구현하세요.")
+        # print("x차원", x.shape)
+        # x_norm = torch.norm(x, dim=3, keepdim=True) 
+        # torch.norm 사용x -> torch.norm은 백터의 길이 구하는 함수
+        
+        # x_norm = torch.nn.functional.normalize(x, p=2, dim=-1) # p: norm 종류 L2인 경우 2 -> 지금 LayerNorm에서는 L2 정규화 아님
+
+        mean = x.mean(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)
+
+        return self.gamma * x_norm + self.beta
 
 
 class GELU(nn.Module):
@@ -31,7 +42,9 @@ class GELU(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: tanh 근사식 또는 torch 연산으로 GELU를 구현합니다."""
-        raise NotImplementedError("GELU.forward를 구현하세요.")
+
+        out = 0.5 * x * (1 + torch.tanh(math.sqrt(2/math.pi) * (x + 0.044715 * x ** 3)))
+        return out
 
 
 class FeedForward(nn.Module):
@@ -40,11 +53,22 @@ class FeedForward(nn.Module):
     def __init__(self, d_model: int, dropout: float = 0.1, mult: int = 4):
         super().__init__()
         # TODO: d_model -> mult*d_model -> d_model 구조의 작은 MLP를 정의하세요.
-        raise NotImplementedError("FeedForward.__init__을 구현하세요.")
+        self.d_model = d_model
+        self.mult = mult
+
+        self.linear1 = torch.nn.Linear(d_model, d_model * mult)
+        self.gelu = GELU()
+        self.linear2 = torch.nn.Linear(d_model * mult, d_model)
+        self.dropout = torch.nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: FeedForward 네트워크를 통과시킵니다."""
-        raise NotImplementedError("FeedForward.forward를 구현하세요.")
+        linear1 = self.linear1(x)
+        gelu = self.gelu(linear1)
+        linear2 = self.linear2(gelu)
+        dropout = self.dropout(linear2)
+        
+        return dropout
 
 
 class TransformerBlock(nn.Module):
@@ -62,11 +86,19 @@ class TransformerBlock(nn.Module):
     ):
         super().__init__()
         # TODO: attention, ffn, layernorm, dropout을 정의하세요.
-        raise NotImplementedError("TransformerBlock.__init__을 구현하세요.")
+        self.attention = MultiHeadAttention(d_model, n_heads, drop_rate, qkv_bias)
+        self.ffn = FeedForward(d_model, drop_rate)
+        self.layernorm1 = LayerNorm(d_model)
+        self.layernorm2 = LayerNorm(d_model)
+        self.dropout = torch.nn.Dropout(drop_rate)
+
 
     def forward(self, x: torch.Tensor, causal_mask: bool = True) -> torch.Tensor:
         """TODO: attention과 ffn을 residual connection으로 연결합니다."""
-        raise NotImplementedError("TransformerBlock.forward를 구현하세요.")
+        r_attn = x + self.attention(self.layernorm1(x))
+        r_ffn = r_attn + self.ffn(self.layernorm2(r_attn))
+
+        return r_ffn
 
 
 class GPTModel(nn.Module):
@@ -76,7 +108,15 @@ class GPTModel(nn.Module):
         super().__init__()
         self.config = config
         # TODO: embedding, blocks, final layernorm, lm_head를 정의하세요.
-        raise NotImplementedError("GPTModel.__init__을 구현하세요.")
+        self.emb = torch.nn.Embedding(num_embeddings=self.config["vocab_size"], embedding_dim=self.config["emb_dim"])
+        self.final_ln = LayerNorm(self.config["emb_dim"])
+        self.blocks = TransformerBlock(
+            self.config["emb_dim"],
+            self.config["n_heads"],
+            self.config["drop_rate"],
+            self.config["qkv_bias"]
+        )
+
 
     def forward(
         self,
@@ -90,7 +130,11 @@ class GPTModel(nn.Module):
             targets가 None이면 logits
             targets가 있으면 (loss, logits)
         """
+
+
+
         raise NotImplementedError("GPTModel.forward를 구현하세요.")
+
 
 
 def generate_text_simple(
