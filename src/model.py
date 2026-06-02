@@ -119,6 +119,7 @@ class GPTModel(nn.Module):
         self,
         idx: torch.Tensor,
         targets: torch.Tensor | None = None,
+        hidden: bool = False
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         TODO: logits를 만들고, targets가 있으면 cross entropy loss도 함께 반환합니다.
@@ -127,7 +128,11 @@ class GPTModel(nn.Module):
             targets가 None이면 logits
             targets가 있으면 (loss, logits)
         """
+        if hidden:
+            return self.f_layernorm(self.blocks(self.embedding(idx)))
+        
         logits = self.lm_head(self.f_layernorm(self.blocks(self.embedding(idx))))
+
         if targets is None:
             return logits
         else:

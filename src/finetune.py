@@ -126,7 +126,7 @@ class GPTForSequenceClassification(nn.Module):
 
         labels가 있으면 (loss, logits), 없으면 logits를 반환합니다.
         """
-        output = self.gpt(input_ids)
+        output = self.gpt(input_ids, hidden=True)
         vector = output[:, -1, :]
         logits = self.classifier(self.dropout(vector))
         
