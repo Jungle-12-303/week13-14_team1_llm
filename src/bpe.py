@@ -83,6 +83,8 @@ class BPETokenizer:
         - 새 token ID를 만들고, 시퀀스의 해당 pair를 새 ID로 치환합니다.
         - `self.merges`, `self.id_to_token`, `self.token_to_id`를 갱신합니다.
         """
+        self.id_to_token = {}
+        self.token_to_id = {}
         
         ids = [byte + BYTE_OFFSET for byte in corpus.encode("utf-8")]
 
