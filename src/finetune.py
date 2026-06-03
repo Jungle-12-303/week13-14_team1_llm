@@ -29,7 +29,7 @@ def make_sentiment_dataset(
     반환 형식:
         [{"text": "리뷰", "label": 0 또는 1}, ...]
     """
-    random.seed(seed)
+    rng = random.Random(seed)
 
     def read_jsonl(path):
         data = []
@@ -44,11 +44,11 @@ def make_sentiment_dataset(
         return data
 
     train_all = read_jsonl(train_tsv_path)
-    random.shuffle(train_all)
+    rng.shuffle(train_all)
 
     val_size = int(len(train_all) * val_ratio)
-    train_data = train_all[:val_size]
-    val_data = train_all[val_size:]
+    val_data = train_all[:val_size]
+    train_data = train_all[val_size:]
 
     test_data = read_jsonl(test_tsv_path) if test_tsv_path else []
 

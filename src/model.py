@@ -25,7 +25,7 @@ class LayerNorm(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """TODO: 마지막 차원의 평균과 분산으로 정규화한 뒤 gamma/beta를 적용합니다."""
         mean = x.mean(dim=-1, keepdim=True)
-        var = x.var(dim=-1, keepdim=True)
+        var = x.var(dim=-1, keepdim=True, unbiased=False)
         x_norm = (x-mean) / torch.sqrt(var + self.eps)
         
         return x_norm * self.gamma + self.beta
