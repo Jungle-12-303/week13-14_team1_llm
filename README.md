@@ -51,7 +51,13 @@
 ### 3.2 Colab에서 사용
 
 1. 메뉴 **런타임 → 런타임 유형 변경**에서 **Python 3**, **GPU**를 선택합니다.
-2. 브라우저에서 다음 주소를 엽니다. `USERNAME`, 저장소명, 브랜치명은 본인 환경에 맞게 바꿉니다. 브랜치가 `main`이면 URL에서 `master`를 `main`으로 바꿉니다.
+2. 브라우저에서 Colab 노트북을 엽니다. 아래 주소에서 `OWNER`, `REPO`, `BRANCH_OR_TAG`를 본인 저장소에 맞게 바꾸거나, GitHub에서 원하는 브랜치를 선택한 뒤 `gpt-lab.ipynb`를 Colab으로 엽니다.
+
+```text
+https://colab.research.google.com/github/OWNER/REPO/blob/BRANCH_OR_TAG/gpt-lab.ipynb
+```
+
+예시:
 
 ```text
 https://colab.research.google.com/github/Jungle-12-303/week13-14_team1_llm/blob/main/gpt-lab.ipynb
@@ -64,8 +70,10 @@ https://colab.research.google.com/github/Jungle-12-303/week13-14_team1_llm/blob/
 github.com/Jungle-12-303/week13-14_team1_llm.git
 ```
 
-5. Private 저장소라면 GitHub Personal Access Token을 입력합니다. 공개 저장소라면 Enter를 누르면 됩니다.
-6. 그 다음 셀부터 데이터 로드 → BPE/모델 → 학습·평가 → 미세 조정 순서로 진행합니다.
+5. `브랜치/태그/커밋 SHA` 입력창에 실행할 버전을 입력합니다. 예: `main`, `dev/my-name`, `feature/model`, `v1.0.0`, `a1b2c3d`. Enter만 누르면 저장소의 기본 브랜치를 사용합니다. 노트북을 `main` 링크로 열었더라도 실제 실행 코드는 이 입력값 기준으로 checkout됩니다.
+6. Private 저장소라면 GitHub Personal Access Token을 입력합니다. 공개 저장소라면 Enter를 누르면 됩니다.
+7. 환경설정 셀은 저장소를 clone/fetch한 뒤 지정한 브랜치/태그/커밋으로 checkout하고 `requirements.txt`를 설치합니다.
+8. 그 다음 셀부터 데이터 로드 → BPE/모델 → 학습·평가 → 미세 조정 순서로 진행합니다.
 
 ### 3.3 로컬에서 실행
 
