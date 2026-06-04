@@ -89,7 +89,7 @@
 | 구분 | 항목 | 값 |
 | --- | --- | --- |
 | 모델 | vocab_size | 2000 |
-| 모델 | context_length | 96 |
+| 모델 | context_length | 64 |
 | 모델 | emb_dim | 128 |
 | 모델 | n_heads | 4 |
 | 모델 | n_layers | 4 |
