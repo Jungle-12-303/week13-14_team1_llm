@@ -59,11 +59,11 @@
 | BPE 방식 | UTF-8 byte-level BPE |
 | 특수 토큰 ID | `<pad>=0`, `<unk>=1`, `<bos>=2`, `<eos>=3` |
 | byte token ID 범위 | 4~259 |
-| vocab_size | (예: 3000) |
+| vocab_size | 1000/2000/3000/4000/5000 |
 | 학습 corpus 크기 | `corpus[:400000]` |
 | 어휘 학습 시간 | CPU 기준 약 10분 |
-| vocabulary 저장 경로 | (예: `data/nsmc_bpe_vocab_3000.json`) |
-| 인코딩/디코딩 복원 예시 | (예: `decode(encode("이 영화는 좋았다")) == 원문`) |
+| vocabulary 저장 경로 | `data/nsmc_bpe_vocab_{vocab_size}.json` |
+| 인코딩/디코딩 복원 예시 | `decode(encode("이 영화는 좋았다")) == 원문` |
 
 ---
 
