@@ -80,7 +80,7 @@
 | n_layers | 4 |
 | drop_rate | 0.2 |
 | qkv_bias | False |
-| 총 파라미터 수 | token_emb(2000×128) + pos_emb(64×128) + transformer_block(197,760×2) + final_norm(128×2) + lm_head(128×2000) + classifier(128×2+2) = 총 916,226개 |
+| 총 파라미터 수 | token_emb(2000×128) + pos_emb(64×128) + transformer_block(197,760×4) + final_norm(128×2) + lm_head(128×2000) + classifier(128×2+2) = 1,311,746개|
 
 ---
 
